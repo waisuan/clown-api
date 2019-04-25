@@ -4,14 +4,15 @@ from bottle import route, run, template, response, hook, JSONPlugin
 from DatabaseManager import DatabaseManager
 from bson import json_util
 from cherrypy import wsgiserver
+import os
+
+route_prefix = '/clown-api'
+db_mgr = DatabaseManager(os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/'), os.environ.get('DB_NAME', 'emblem'))
 
 
 @hook('after_request')
 def enable_cors():
     response.headers['Access-Control-Allow-Origin'] = '*'
-
-db_mgr = DatabaseManager('localhost', 27017, 'emblem')
-route_prefix = '/clown-api'
 
 
 @route(route_prefix + '/machines/search/<property>')
@@ -37,9 +38,10 @@ def get_machines(limit=None, last_batch_fetched=0, sort_by=0, sort_order=0):
     return db_mgr.get_machines(limit, last_batch_fetched, sort_by, sort_order)
 
 
-#todo run app on a real WSGI server
 app = bottle.app()
-#todo use env var
 app.install(JSONPlugin(json_dumps=lambda body: json.dumps(
     body, default=json_util.default)))
-app.run(host='localhost', port=8080, debug=True, server='cherrypy')
+if os.environ.get('APP_LOCATION') == 'heroku':
+    run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), server='cherrypy')
+else:
+    run(host='localhost', port=8080, debug=True, server='cherrypy')

@@ -3,8 +3,8 @@ from bson.objectid import ObjectId
 import datetime, re
 
 class DatabaseManager:
-    def __init__(self, host, port, db_name):
-        client = MongoClient(host, port)
+    def __init__(self, uri, db_name):
+        client = MongoClient(uri)
         self.db = client[db_name]
         self.query_projections = {
             # Exclude
@@ -85,8 +85,7 @@ class DatabaseManager:
             else:
                 results = machines.find({}, self.query_projections).skip(int(last_batch_fetched)).limit(int(limit))
         else:
-            #todo
-            pass
+            results = machines.find({}, self.query_projections)
         return {'count': results.count(), 'data': self._clean(list(results))}
 
     def get_machines_by_property(self, property, limit, last_batch_fetched, sort_by, sort_order):
