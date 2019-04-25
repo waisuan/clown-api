@@ -3,6 +3,7 @@ import bottle
 from bottle import route, run, template, response, hook, JSONPlugin
 from DatabaseManager import DatabaseManager
 from bson import json_util
+from cherrypy import wsgiserver
 
 
 @hook('after_request')
@@ -41,4 +42,4 @@ app = bottle.app()
 #todo use env var
 app.install(JSONPlugin(json_dumps=lambda body: json.dumps(
     body, default=json_util.default)))
-app.run(host='localhost', port=8080, debug=True)
+app.run(host='localhost', port=8080, debug=True, server='cherrypy')
