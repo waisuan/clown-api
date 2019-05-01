@@ -5,7 +5,6 @@ from DatabaseManager import DatabaseManager
 from bson import json_util
 from cherrypy import wsgiserver
 import os
-from pprint import pprint
 
 route_prefix = '/clown-api'
 db_mgr = DatabaseManager(os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/'), os.environ.get('DB_NAME', 'emblem'))
@@ -29,7 +28,7 @@ def options_handler(path=None):
 @route(route_prefix + '/machines/<limit:int>')
 @route(route_prefix + '/machines/<limit:int>/<last_batch_fetched:int>')
 @route(route_prefix + '/machines/<limit:int>/<last_batch_fetched:int>/<sort_by>/<sort_order>')
-def get_machines(limit=None, last_batch_fetched=0, sort_by=0, sort_order=0):
+def get_machines(limit=None, last_batch_fetched=0, sort_by=None, sort_order=None):
     print('get_machines')
     return db_mgr.get_machines(limit, last_batch_fetched, sort_by, sort_order)
 
@@ -38,7 +37,7 @@ def get_machines(limit=None, last_batch_fetched=0, sort_by=0, sort_order=0):
 @route(route_prefix + '/machines/search/<property>/<limit:int>')
 @route(route_prefix + '/machines/search/<property>/<limit:int>/<last_batch_fetched:int>')
 @route(route_prefix + '/machines/search/<property>/<limit:int>/<last_batch_fetched:int>/<sort_by>/<sort_order>')
-def get_machines_by_property(property, limit=None, last_batch_fetched=0, sort_by=0, sort_order=0):
+def get_machines_by_property(property, limit=None, last_batch_fetched=0, sort_by=None, sort_order=None):
     print('get_machines_by_property')
     return db_mgr.get_machines_by_property(property, limit, last_batch_fetched, sort_by, sort_order)
 

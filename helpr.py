@@ -60,3 +60,12 @@ def like(property):
             {'dateOfCreation': {'$gte': convert_string_to_date(property), '$lt': convert_string_to_date(property, 1)}},
             {'lastUpdated': {'$gte': convert_string_to_date(property), '$lt': convert_string_to_date(property, 1)}}
             ]
+
+def get_sort_order(raw_order):
+    if raw_order is None:
+        return 0
+    elif raw_order.lower() == 'asc':
+        return 1
+    elif raw_order.lower() == 'desc':
+        return -1
+    return 0
