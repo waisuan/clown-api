@@ -2,11 +2,13 @@ from pymongo import MongoClient, errors
 from bson.objectid import ObjectId
 import datetime, re
 import helpr
+import gridfs
 
 class DatabaseManager:
     def __init__(self, uri, db_name):
         client = MongoClient(uri)
         self.db = client[db_name]
+        self.gfs = gridfs.GridFS(self.db)
         self.query_projections = {
             # Exclude
             '_id': 0,
@@ -54,13 +56,20 @@ class DatabaseManager:
         machines = self.db.machines
         return machines.find_one({'serialNumber': id}, self.query_projections)
 
-    def update_machine(self, id, new_values):
+    def update_machine(self, id, new_values, attachment=None, filename=None):
         machines = self.db.machines
         try:
-            machines.update_one({'serialNumber': id}, {'$set': helpr.clean_for_write(new_values)})
+            if attachment:
+                attachment_id = self.gfs.put(attachment, machine_id=id, filename=filename)
+                new_values['attachment'] = attachment_id
+            #machines.update_one({'serialNumber': id}, {'$set': helpr.clean_for_write(new_values)})
         except errors.PyMongoError:
             return False
         return True
+
+    def get_attachment(self, id):
+        gfs = self.gfs
+        return gfs.get(ObjectId(id))
 
 
 if __name__ == "__main__":

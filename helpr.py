@@ -1,4 +1,4 @@
-import datetime, re
+import datetime, re, os
 
 def clean_for_read(machines):
     for machine in machines:
@@ -69,3 +69,8 @@ def get_sort_order(raw_order):
     elif raw_order.lower() == 'desc':
         return -1
     return 0
+
+def purge_file(dir, filename = None):
+    filelist = [f for f in os.listdir(dir) if filename is None or f == filename]
+    for f in filelist:
+        os.remove(os.path.join(dir, f))
