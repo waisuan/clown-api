@@ -17,8 +17,7 @@ cleanr = Cleanr(static_dir)
 def enable_cors():
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, DELETE, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Authorization, Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
-    #response.headers['Content-Type'] = 'application/json'
+    response.headers['Access-Control-Allow-Headers'] = 'Authorization, Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token, Accept-Encoding, Content-Disposition, Content-Length, Accept-Ranges, Content-Range'
 
 
 @route('/', method='OPTIONS')
@@ -64,13 +63,21 @@ def update_machine(id):
 
 @route(route_prefix + '/attachment/<id>')
 def get_attachment(id):
+    in_file = None
     try:
         in_file = db_mgr.get_attachment(id)
         with open(os.path.join(static_dir, in_file.filename), "wb") as out_file:
             out_file.write(in_file.read())
-        return static_file(in_file.filename, root=static_dir)
+        custom_response = static_file(in_file.filename, root=static_dir, mimetype='auto', download=True)
+        custom_response.set_header('Access-Control-Allow-Origin', '*')
+        custom_response.set_header('Access-Control-Expose-Headers', 'Content-Disposition')
+        return custom_response
+    except:
+        response.status = 404
+        return
     finally:
-        cleanr.add_to_queue(in_file.filename)
+        if in_file is not None:
+            cleanr.add_to_queue(in_file.filename)
 
 
 
