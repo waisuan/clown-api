@@ -56,16 +56,13 @@ class DatabaseManager:
         machines = self.db.machines
         return machines.find_one({'serialNumber': id}, self.query_projections)
 
-    def update_machine(self, id, new_values, attachment=None, filename=None):
+    def update_machine(self, id, new_values):
         machines = self.db.machines
-        try:
-            if attachment:
-                attachment_id = self.gfs.put(attachment, machine_id=id, filename=filename)
-                new_values['attachment'] = attachment_id
-            #machines.update_one({'serialNumber': id}, {'$set': helpr.clean_for_write(new_values)})
-        except errors.PyMongoError:
-            return False
-        return True
+        return machines.update_one({'serialNumber': id}, {'$set': helpr.clean_for_write(new_values)})
+
+    def insert_attachment(self, id, attachment, filename):
+        attachment_id = self.gfs.put(attachment, parent_id=id, filename=filename)
+        return {'id': str(attachment_id)}
 
     def get_attachment(self, id):
         gfs = self.gfs

@@ -46,19 +46,22 @@ def get_machines_by_property(property, limit=None, last_batch_fetched=0, sort_by
 
 @route(route_prefix + '/machine/<id>', method='PUT')
 def update_machine(id):
-    # print(request.json)
-    # print(request.forms['hello'])
-    attachment = request.files.get('attachment')
-    if (attachment is not None):
-        in_mem_attachment = io.BytesIO()
-        attachment.save(in_mem_attachment, True)
-        in_mem_attachment.seek(0)
-        filename = attachment.filename
-    if db_mgr.update_machine(id, request.forms, in_mem_attachment, filename):
+    if db_mgr.update_machine(id, request.json):
         response.status = 200
     else:
         response.status = 400
     return
+
+
+@route(route_prefix + '/attachment/<id>', method='PUT')
+def insert_attachment(id):
+    attachment = request.files.get('attachment')
+    print(attachment)
+    in_mem_attachment = io.BytesIO()
+    attachment.save(in_mem_attachment, True)
+    in_mem_attachment.seek(0)
+    filename = attachment.filename
+    return db_mgr.insert_attachment(id, in_mem_attachment, filename)
 
 
 @route(route_prefix + '/attachment/<id>')
