@@ -15,8 +15,7 @@ class DatabaseManager:
             'overdue': 0, 
             'tncDateInDate': 0, 
             'ppmDateInDate': 0, 
-            'almostDue': 0, 
-            'additionalNotes': 0, 
+            'almostDue': 0,
             'lastUpdatedInLong': 0, 
             'historyCount': 0, 
             'dueForPPM': 0, 
@@ -54,11 +53,31 @@ class DatabaseManager:
 
     def get_machine_by_id(self, id):
         machines = self.db.machines
-        return machines.find_one({'serialNumber': id}, self.query_projections)
+        return helpr.clean_single_machine_for_read(machines.find_one({'serialNumber': id}, self.query_projections) or {})
 
     def update_machine(self, id, new_values):
         machines = self.db.machines
+        machine = self.get_machine_by_id(id)
+        if not machine:
+            return False
+        if machine['lastUpdated'] != new_values['lastUpdated']:
+            return False
+        if 'attachment' in machine and machine['attachment']:
+            current_attachment_id = machine['attachment']
+            if 'attachment' not in new_values or not new_values['attachment']:
+                self.delete_attachment(current_attachment_id)
+            elif new_values['attachment'] != current_attachment_id:
+                self.delete_attachment(current_attachment_id)
         return machines.update_one({'serialNumber': id}, {'$set': helpr.clean_for_write(new_values)})
+
+    def delete_machine(self, id):
+        machines = self.db.machines
+        machine = self.get_machine_by_id(id)
+        if not machine:
+            return False
+        if 'attachment' in machine and machine['attachment']:
+            self.delete_attachment(machine['attachment'])
+        return machines.delete_one({'serialNumber': id})
 
     def insert_attachment(self, id, attachment, filename):
         attachment_id = self.gfs.put(attachment, parent_id=id, filename=filename)
@@ -67,6 +86,10 @@ class DatabaseManager:
     def get_attachment(self, id):
         gfs = self.gfs
         return gfs.get(ObjectId(id))
+
+    def delete_attachment(self, id):
+        gfs = self.gfs
+        return gfs.delete(ObjectId(id))
 
 
 if __name__ == "__main__":

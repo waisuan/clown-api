@@ -49,7 +49,16 @@ def update_machine(id):
     if db_mgr.update_machine(id, request.json):
         response.status = 200
     else:
-        response.status = 400
+        response.status = 404
+    return
+
+
+@route(route_prefix + '/machine/<id>', method='DELETE')
+def delete_machine(id):
+    if db_mgr.delete_machine(id):
+        response.status = 200
+    else:
+        response.status = 404
     return
 
 

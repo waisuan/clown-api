@@ -1,15 +1,24 @@
 import datetime, re, os
 
+def clean_single_machine_for_read(machine):
+    if not machine:
+        return machine
+    if machine['tncDate'] is not None:
+        machine['tncDate'] = machine['tncDate'].strftime('%d/%m/%Y')
+    if machine['ppmDate'] is not None:
+        machine['ppmDate'] = machine['ppmDate'].strftime('%d/%m/%Y')
+    if machine['dateOfCreation'] is not None:
+        machine['dateOfCreation'] = machine['dateOfCreation'].strftime('%d/%m/%Y %H:%M:%S')
+    if machine['lastUpdated'] is not None:
+        machine['lastUpdated'] = machine['lastUpdated'].strftime('%d/%m/%Y %H:%M:%S')
+    if 'attachment' in machine and machine['attachment']:
+        machine['attachment'] = str(machine['attachment'])
+    return machine
+
+
 def clean_for_read(machines):
     for machine in machines:
-        if machine['tncDate'] is not None:
-            machine['tncDate'] = machine['tncDate'].strftime('%d/%m/%Y')
-        if machine['ppmDate'] is not None:
-            machine['ppmDate'] = machine['ppmDate'].strftime('%d/%m/%Y')
-        if machine['dateOfCreation'] is not None:
-            machine['dateOfCreation'] = machine['dateOfCreation'].strftime('%d/%m/%Y %H:%M:%S')
-        if machine['lastUpdated'] is not None:
-            machine['lastUpdated'] = machine['lastUpdated'].strftime('%d/%m/%Y %H:%M:%S')
+        clean_single_machine_for_read(machine)
     return machines
 
 
