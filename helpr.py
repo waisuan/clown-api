@@ -3,9 +3,9 @@ import datetime, re, os
 def clean_single_machine_for_read(machine):
     if not machine:
         return machine
-    if machine['tncDate'] is not None:
+    if 'tncDate' in machine and machine['tncDate'] is not None:
         machine['tncDate'] = machine['tncDate'].strftime('%d/%m/%Y')
-    if machine['ppmDate'] is not None:
+    if 'ppmDate' in machine and machine['ppmDate'] is not None:
         machine['ppmDate'] = machine['ppmDate'].strftime('%d/%m/%Y')
     if machine['dateOfCreation'] is not None:
         machine['dateOfCreation'] = machine['dateOfCreation'].strftime('%d/%m/%Y %H:%M:%S')
@@ -23,13 +23,13 @@ def clean_for_read(machines):
 
 
 def clean_for_write(machine):
-    if machine['tncDate'] is not None:
+    if 'tncDate' in machine and machine['tncDate'] is not None:
         date_tokens = re.split('/', machine['tncDate'])
         machine['tncDate'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]))
-    if machine['ppmDate'] is not None:
+    if 'ppmDate' in machine and machine['ppmDate'] is not None:
         date_tokens=re.split('/', machine['ppmDate'])
         machine['ppmDate'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]))
-    if machine['dateOfCreation'] is None:
+    if 'dateOfCreation' not in machine or machine['dateOfCreation'] is None:
         machine['dateOfCreation'] = datetime.datetime.now()
     else:
         date_tokens = re.split('[/: ]', machine['dateOfCreation'])

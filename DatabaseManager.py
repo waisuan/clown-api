@@ -55,6 +55,13 @@ class DatabaseManager:
         machines = self.db.machines
         return helpr.clean_single_machine_for_read(machines.find_one({'serialNumber': id}, self.query_projections) or {})
 
+    def insert_machine(self, new_machine):
+        machines = self.db.machines
+        machine = self.get_machine_by_id(new_machine['serialNumber'])
+        if machine:
+            return False
+        return machines.insert_one(helpr.clean_for_write(new_machine))
+
     def update_machine(self, id, new_values):
         machines = self.db.machines
         machine = self.get_machine_by_id(id)

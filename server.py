@@ -44,6 +44,15 @@ def get_machines_by_property(property, limit=None, last_batch_fetched=0, sort_by
     return db_mgr.get_machines_by_property(property, limit, last_batch_fetched, sort_by, sort_order)
 
 
+@route(route_prefix + '/machine', method='POST')
+def insert_machine():
+    if db_mgr.insert_machine(request.json):
+        response.status = 200
+    else:
+        response.status = 404
+    return
+
+
 @route(route_prefix + '/machine/<id>', method='PUT')
 def update_machine(id):
     if db_mgr.update_machine(id, request.json):
