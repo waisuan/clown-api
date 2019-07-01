@@ -3,6 +3,7 @@ from bson.objectid import ObjectId
 import datetime, re
 import helpr
 import gridfs
+import pprint
 
 class DatabaseManager:
     def __init__(self, uri, db_name):
@@ -55,6 +56,16 @@ class DatabaseManager:
         machines = self.db.machines
         return helpr.clean_single_machine_for_read(machines.find_one({'serialNumber': id}, self.query_projections) or {})
 
+    def get_due_machines(self):
+        machines = self.db.machines
+        today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
+        due_today = machines.find({'ppmDate': today}, self.query_projections)
+        two_weeks_from_today = today + datetime.timedelta(days=14)
+        almost_due = machines.find({'ppmDate': {'$gt': today, '$lte': two_weeks_from_today}}, self.query_projections)
+        two_weeks_ago = today + datetime.timedelta(days=-14)
+        overdue = machines.find({'ppmDate': {'$gte': two_weeks_ago, '$lt': today}}, self.query_projections)
+        return {'due': helpr.clean_for_read(list(due_today)), 'almost': helpr.clean_for_read(list(almost_due)), 'over': helpr.clean_for_read(list(overdue))}
+
     def insert_machine(self, new_machine):
         machines = self.db.machines
         machine = self.get_machine_by_id(new_machine['serialNumber'])
@@ -101,5 +112,9 @@ class DatabaseManager:
 
 if __name__ == "__main__":
     mgr = DatabaseManager('mongodb://localhost:27017/', 'emblem')
-
+    result = mgr.get_due_machines()
+    for key in result:
+        print(key)
+        pprint.pprint(result[key])
+        print()
 

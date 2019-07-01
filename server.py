@@ -1,10 +1,16 @@
+from gevent import monkey
+monkey.patch_all()
 import json, bottle, os, io, helpr
-from bottle import route, run, template, response, hook, JSONPlugin, request, static_file
+from bottle import route, run, template, response, hook, JSONPlugin, request, static_file, abort
+from gevent.pywsgi import WSGIServer
+from geventwebsocket import WebSocketError
+from geventwebsocket.handler import WebSocketHandler
 from DatabaseManager import DatabaseManager
 from bson import json_util
-from cherrypy import wsgiserver
+# from cherrypy import wsgiserver
 from threading import Thread
 from cleanr import Cleanr
+from time import sleep
 
 
 route_prefix = '/clown-api'
@@ -101,13 +107,31 @@ def get_attachment(id):
             cleanr.add_to_queue(in_file.filename)
 
 
+@route(route_prefix + '/websocket')
+def handle_websocket():
+    wsock = request.environ.get('wsgi.websocket')
+    if not wsock:
+        abort(400, 'Expected WebSocket request.')
+
+    while True:
+        try:
+            machines = db_mgr.get_due_machines()
+            wsock.send(json.dumps(machines))
+            sleep(10)
+        except WebSocketError:
+            break
+
 
 app = bottle.app()
 app.install(JSONPlugin(json_dumps=lambda body: json.dumps(body, default=json_util.default)))
 cleanr.start()
 if os.environ.get('APP_LOCATION') == 'heroku':
-    run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), server='cherrypy')
+    run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), server='gevent', handler_class=WebSocketHandler)
+    #run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), server='cherrypy')
 else:
-    run(host='localhost', port=8080, debug=True)
+    run(host='localhost', port=8080, debug=True, server='gevent', handler_class=WebSocketHandler)
+    # bottle.debug(True)
+    # server = WSGIServer(('localhost', 8080), app, handler_class=WebSocketHandler)
+    # server.serve_forever()
 cleanr.stop()
 cleanr.join()
