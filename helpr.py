@@ -83,3 +83,6 @@ def purge_file(dir, filename = None):
     filelist = [f for f in os.listdir(dir) if filename is None or f == filename]
     for f in filelist:
         os.remove(os.path.join(dir, f))
+
+def flatten_list(obj, key):
+    return list(o[key] for o in obj)

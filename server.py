@@ -115,9 +115,9 @@ def handle_websocket():
 
     while True:
         try:
-            machines = db_mgr.get_due_machines()
+            machines = db_mgr.get_machines_with_ppm_status()
             wsock.send(json.dumps(machines))
-            sleep(10)
+            sleep(60)
         except WebSocketError:
             break
 
@@ -127,11 +127,7 @@ app.install(JSONPlugin(json_dumps=lambda body: json.dumps(body, default=json_uti
 cleanr.start()
 if os.environ.get('APP_LOCATION') == 'heroku':
     run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), server='gevent', handler_class=WebSocketHandler)
-    #run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), server='cherrypy')
 else:
     run(host='localhost', port=8080, debug=True, server='gevent', handler_class=WebSocketHandler)
-    # bottle.debug(True)
-    # server = WSGIServer(('localhost', 8080), app, handler_class=WebSocketHandler)
-    # server.serve_forever()
 cleanr.stop()
 cleanr.join()

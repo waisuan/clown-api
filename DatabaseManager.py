@@ -10,6 +10,7 @@ class DatabaseManager:
         client = MongoClient(uri)
         self.db = client[db_name]
         self.gfs = gridfs.GridFS(self.db)
+        self.query_project_id_only = {'serialNumber' : 1}
         self.query_projections = {
             # Exclude
             '_id': 0,
@@ -56,15 +57,30 @@ class DatabaseManager:
         machines = self.db.machines
         return helpr.clean_single_machine_for_read(machines.find_one({'serialNumber': id}, self.query_projections) or {})
 
-    def get_due_machines(self):
+    def _get_due_machines(self):
         machines = self.db.machines
         today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
-        due_today = machines.find({'ppmDate': today}, self.query_projections)
-        two_weeks_from_today = today + datetime.timedelta(days=14)
-        almost_due = machines.find({'ppmDate': {'$gt': today, '$lte': two_weeks_from_today}}, self.query_projections)
+        due_today = machines.find({'ppmDate': today}, self.query_project_id_only)
+        return helpr.flatten_list(due_today, 'serialNumber')
+
+    def _get_overdue_machines(self):
+        machines = self.db.machines
+        today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
         two_weeks_ago = today + datetime.timedelta(days=-14)
-        overdue = machines.find({'ppmDate': {'$gte': two_weeks_ago, '$lt': today}}, self.query_projections)
-        return {'due': helpr.clean_for_read(list(due_today)), 'almost': helpr.clean_for_read(list(almost_due)), 'over': helpr.clean_for_read(list(overdue))}
+        overdue = machines.find({'ppmDate': {'$gte': two_weeks_ago, '$lt': today}}, self.query_project_id_only)
+        return helpr.flatten_list(overdue, 'serialNumber')
+
+    def _get_almost_due_machines(self):
+        machines = self.db.machines
+        today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
+        two_weeks_from_today = today + datetime.timedelta(days=14)
+        almost_due = machines.find({'ppmDate': {'$gt': today, '$lte': two_weeks_from_today}}, self.query_project_id_only)
+        return helpr.flatten_list(almost_due, 'serialNumber')
+
+    def get_machines_with_ppm_status(self):
+        return self._get_due_machines() + self._get_almost_due_machines() + self._get_overdue_machines()
+        # {'count': results.count(), 'data': helpr.clean_for_read(list(results))}
+        #return {'due': helpr.clean_for_read(list(due_today)), 'almost': helpr.clean_for_read(list(almost_due)), 'over': helpr.clean_for_read(list(overdue))}
 
     def insert_machine(self, new_machine):
         machines = self.db.machines
@@ -112,9 +128,10 @@ class DatabaseManager:
 
 if __name__ == "__main__":
     mgr = DatabaseManager('mongodb://localhost:27017/', 'emblem')
-    result = mgr.get_due_machines()
-    for key in result:
-        print(key)
-        pprint.pprint(result[key])
-        print()
+    result = mgr.get_machines_with_ppm_status()
+    for machine in result:
+        print(machine)
+    # result = mgr.get_machines(None, None, None, None)
+    # for r in result['data']:
+    #     mgr.update_machine(r['serialNumber'], {'ppmStatus': ''})
 
