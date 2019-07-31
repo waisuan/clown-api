@@ -4,3 +4,4 @@ cherrypy==8.9.1
 pymongo==3.7.2
 gevent==1.4.0
 gevent-websocket==0.10.1
+pytest==5.0.1
