@@ -1,0 +1,1 @@
+https://travis-ci.org/waisuan/clown-api.svg?branch=master
