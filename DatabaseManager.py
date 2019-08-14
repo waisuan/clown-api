@@ -29,9 +29,12 @@ class DatabaseManager:
             'score': {'$meta': 'textScore'}
         }
 
-    def get_machines(self, limit, last_batch_fetched, sort_by, sort_order):
+    def get_machines(self, limit, last_batch_fetched, sort_by, sort_order, due_status=None):
         machines = self.db.machines
-        results = machines.find({}, self.query_projections)
+        if not due_status:
+            results = machines.find({}, self.query_projections)
+        else:
+            results = self._get_custom_due_machines(due_status)
         if sort_by is not None:
             results = results.sort(sort_by, helpr.get_sort_order(sort_order))
         if limit is not None:
@@ -57,30 +60,64 @@ class DatabaseManager:
         machines = self.db.machines
         return helpr.clean_single_machine_for_read(machines.find_one({'serialNumber': id}, self.query_projections) or {})
 
+    def get_machines_by_ids(self, ids):
+        machines = self.db.machines
+        results = machines.find({'serialNumber': {'$in': ids}}, self.query_projections)
+        return {'count': results.count(), 'data': helpr.clean_for_read(list(results))}
+
     def _get_due_machines(self):
         machines = self.db.machines
         today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
-        due_today = machines.find({'ppmDate': today}, self.query_project_id_only)
-        return helpr.flatten_list(due_today, 'serialNumber')
+        due_today = machines.find({'ppmDate': today}, self.query_projections)
+        return due_today
 
     def _get_overdue_machines(self):
         machines = self.db.machines
         today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
         two_weeks_ago = today + datetime.timedelta(days=-14)
-        overdue = machines.find({'ppmDate': {'$gte': two_weeks_ago, '$lt': today}}, self.query_project_id_only)
-        return helpr.flatten_list(overdue, 'serialNumber')
+        overdue = machines.find({'ppmDate': two_weeks_ago}, self.query_projections)
+        return overdue
 
     def _get_almost_due_machines(self):
         machines = self.db.machines
         today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
         two_weeks_from_today = today + datetime.timedelta(days=14)
-        almost_due = machines.find({'ppmDate': {'$gt': today, '$lte': two_weeks_from_today}}, self.query_project_id_only)
-        return helpr.flatten_list(almost_due, 'serialNumber')
+        almost_due = machines.find({'ppmDate': two_weeks_from_today}, self.query_projections)
+        return almost_due
 
-    def get_machines_with_ppm_status(self):
-        return self._get_due_machines() + self._get_almost_due_machines() + self._get_overdue_machines()
+    def _get_custom_due_machines(self, status):
+        machines = self.db.machines
+        today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
+        two_weeks_from_today = today + datetime.timedelta(days=14)
+        two_weeks_ago = today + datetime.timedelta(days=-14)
+        tokens = status.split(",")
+        conditions = []
+        for token in tokens:
+            if token == 'almostDue':
+                conditions.append({'ppmDate': two_weeks_from_today})
+            elif token == 'due':
+                conditions.append({'ppmDate': today})
+            elif token == 'overDue':
+                conditions.append({'ppmDate': two_weeks_ago})
+        due = machines.find({'$or': conditions}, self.query_projections)
+        return due
+
+    def _get_all_due_machines(self):
+        machines = self.db.machines
+        today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
+        two_weeks_from_today = today + datetime.timedelta(days=14)
+        two_weeks_ago = today + datetime.timedelta(days=-14)
+        due = machines.find({'$or': [{'ppmDate': today}, {'ppmDate': two_weeks_from_today}, {'ppmDate': two_weeks_ago}]}, self.query_projections)
+        return due
+        #return self._get_due_machines() + self._get_almost_due_machines() + self._get_overdue_machines()
+        #return {'data': self._get_due_machines() + self._get_almost_due_machines() + self._get_overdue_machines()}
         # {'count': results.count(), 'data': helpr.clean_for_read(list(results))}
         #return {'due': helpr.clean_for_read(list(due_today)), 'almost': helpr.clean_for_read(list(almost_due)), 'over': helpr.clean_for_read(list(overdue))}
+
+    def get_num_of_due_machines(self):
+        due = self._get_all_due_machines()
+        return due.count()
+        #return len(helpr.clean_for_read(list(self._get_due_machines())) + helpr.clean_for_read(list(self._get_almost_due_machines())) + helpr.clean_for_read(list(self._get_overdue_machines())))
 
     def insert_machine(self, new_machine):
         machines = self.db.machines

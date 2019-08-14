@@ -37,8 +37,16 @@ def options_handler(path=None):
 @route(route_prefix + '/machines/<limit:int>/<last_batch_fetched:int>')
 @route(route_prefix + '/machines/<limit:int>/<last_batch_fetched:int>/<sort_by>/<sort_order>')
 def get_machines(limit=None, last_batch_fetched=0, sort_by=None, sort_order=None):
-    print('get_machines')
     return db_mgr.get_machines(limit, last_batch_fetched, sort_by, sort_order)
+
+
+@route(route_prefix + '/machines/due/<status>')
+@route(route_prefix + '/machines/due/<status>/<limit:int>')
+@route(route_prefix + '/machines/due/<status>/<limit:int>/<last_batch_fetched:int>')
+@route(route_prefix + '/machines/due/<status>/<limit:int>/<last_batch_fetched:int>/<sort_by>/<sort_order>')
+def get_due_machines(status, limit=None, last_batch_fetched=0, sort_by=None, sort_order=None):
+    print(status)
+    return db_mgr.get_machines(limit, last_batch_fetched, sort_by, sort_order, status)
 
 
 @route(route_prefix + '/machines/search/<property>')
@@ -46,7 +54,6 @@ def get_machines(limit=None, last_batch_fetched=0, sort_by=None, sort_order=None
 @route(route_prefix + '/machines/search/<property>/<limit:int>/<last_batch_fetched:int>')
 @route(route_prefix + '/machines/search/<property>/<limit:int>/<last_batch_fetched:int>/<sort_by>/<sort_order>')
 def get_machines_by_property(property, limit=None, last_batch_fetched=0, sort_by=None, sort_order=None):
-    print('get_machines_by_property')
     return db_mgr.get_machines_by_property(property, limit, last_batch_fetched, sort_by, sort_order)
 
 
@@ -80,7 +87,6 @@ def delete_machine(id):
 @route(route_prefix + '/attachment/<id>', method='PUT')
 def insert_attachment(id):
     attachment = request.files.get('attachment')
-    print(attachment)
     in_mem_attachment = io.BytesIO()
     attachment.save(in_mem_attachment, True)
     in_mem_attachment.seek(0)
@@ -115,8 +121,8 @@ def handle_websocket():
 
     while True:
         try:
-            machines = db_mgr.get_machines_with_ppm_status()
-            wsock.send(json.dumps(machines))
+            num = db_mgr.get_num_of_due_machines()
+            wsock.send(json.dumps(num))
             sleep(60)
         except WebSocketError:
             break
