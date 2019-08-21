@@ -1,4 +1,4 @@
-from bottle import Bottle, request, response, abort, JSONPlugin
+from bottle import Bottle, request, response, abort, JSONPlugin, static_file
 from DatabaseManager import DatabaseManager
 from geventwebsocket import WebSocketError
 import os, json, io
