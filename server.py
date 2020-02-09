@@ -6,7 +6,8 @@ from gevent.pywsgi import WSGIServer
 from geventwebsocket import WebSocketError
 from geventwebsocket.handler import WebSocketHandler
 from cleanr import Cleanr
-from modules import machine, attachment
+from modules.machine import machine
+from modules.attachment import attachment
 
 route_prefix = '/clown-api'
 

@@ -61,13 +61,17 @@ def like(property):
             {'brand': {'$regex': property, '$options': 'i'}},
             {'status': {'$regex': property, '$options': 'i'}},
             {'tncDate': convert_string_to_date(property)},
+            {'tncDateInInt': {'$regex': property, '$options': 'i'}},
             {'ppmDate': convert_string_to_date(property)},
+            {'ppmDateInInt': {'$regex': property, '$options': 'i'}},
             {'reportedBy': {'$regex': property, '$options': 'i'}},
             {'personInCharge': {'$regex': property, '$options': 'i'}},
             {'dateOfCreation': convert_string_to_datetime(property)},
+            {'dateOfCreationInInt': {'$regex': property, '$options': 'i'}},
             {'lastUpdated': convert_string_to_datetime(property)},
-            {'dateOfCreation': {'$gte': convert_string_to_date(property), '$lt': convert_string_to_date(property, 1)}},
-            {'lastUpdated': {'$gte': convert_string_to_date(property), '$lt': convert_string_to_date(property, 1)}}
+            {'lastUpdatedInInt': {'$regex': property, '$options': 'i'}},
+            {'dateOfCreation': convert_string_to_date(property)},
+            {'lastUpdated': convert_string_to_date(property)}
             ]
 
 def get_sort_order(raw_order):
