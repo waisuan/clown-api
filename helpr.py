@@ -1,41 +1,49 @@
 import datetime, re, os
 
-def clean_single_machine_for_read(machine):
-    if not machine:
-        return machine
-    if 'tncDate' in machine and machine['tncDate'] is not None:
-        machine['tncDate'] = machine['tncDate'].strftime('%d/%m/%Y')
-    if 'ppmDate' in machine and machine['ppmDate'] is not None:
-        machine['ppmDate'] = machine['ppmDate'].strftime('%d/%m/%Y')
-    if machine['dateOfCreation'] is not None:
-        machine['dateOfCreation'] = machine['dateOfCreation'].strftime('%d/%m/%Y %H:%M:%S')
-    if machine['lastUpdated'] is not None:
-        machine['lastUpdated'] = machine['lastUpdated'].strftime('%d/%m/%Y %H:%M:%S')
-    if 'attachment' in machine and machine['attachment']:
-        machine['attachment'] = str(machine['attachment'])
-    return machine
+def clean_single_object_for_read(object):
+    if not object:
+        return object
+    if 'tncDate' in object and object['tncDate'] is not None:
+        object['tncDate'] = object['tncDate'].strftime('%d/%m/%Y')
+    if 'ppmDate' in object and object['ppmDate'] is not None:
+        object['ppmDate'] = object['ppmDate'].strftime('%d/%m/%Y')
+    if object['dateOfCreation'] is not None:
+        object['dateOfCreation'] = object['dateOfCreation'].strftime('%d/%m/%Y %H:%M:%S')
+    if object['lastUpdated'] is not None:
+        object['lastUpdated'] = object['lastUpdated'].strftime('%d/%m/%Y %H:%M:%S')
+    if 'attachment' in object and object['attachment']:
+        object['attachment'] = str(object['attachment'])
+    if 'workOrderDate' in object and object['workOrderDate'] is not None:
+        object['workOrderDate'] = object['workOrderDate'].strftime('%d/%m/%Y')
+    if '_id' in object and object['_id'] is not None:
+        object['_id'] = str(object['_id'])
+    return object
 
 
-def clean_for_read(machines):
-    for machine in machines:
-        clean_single_machine_for_read(machine)
-    return machines
+def clean_for_read(objects):
+    for object in objects:
+        clean_single_object_for_read(object)
+    return objects
 
 
-def clean_for_write(machine):
-    if 'tncDate' in machine and machine['tncDate'] is not None:
-        date_tokens = re.split('/', machine['tncDate'])
-        machine['tncDate'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]))
-    if 'ppmDate' in machine and machine['ppmDate'] is not None:
-        date_tokens=re.split('/', machine['ppmDate'])
-        machine['ppmDate'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]))
-    if 'dateOfCreation' not in machine or machine['dateOfCreation'] is None:
-        machine['dateOfCreation'] = datetime.datetime.now()
-    else:
-        date_tokens = re.split('[/: ]', machine['dateOfCreation'])
-        machine['dateOfCreation'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]), int(date_tokens[3]), int(date_tokens[4]), int(date_tokens[5]))
-    machine['lastUpdated'] = datetime.datetime.now()
-    return machine
+def clean_for_write(object):
+    if 'tncDate' in object and object['tncDate'] is not None:
+        date_tokens = re.split('/', object['tncDate'])
+        object['tncDate'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]))
+    if 'ppmDate' in object and object['ppmDate'] is not None:
+        date_tokens=re.split('/', object['ppmDate'])
+        object['ppmDate'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]))
+    if 'workOrderDate' in object and object['workOrderDate'] is not None:
+        date_tokens=re.split('/', object['workOrderDate'])
+        object['workOrderDate'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]))
+    if 'dateOfCreation' in object and object['dateOfCreation'] is not None:
+        date_tokens = re.split('[/: ]', object['dateOfCreation'])
+        object['dateOfCreation'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]), int(date_tokens[3]), int(date_tokens[4]), int(date_tokens[5]))
+    if 'dateOfCreation' not in object or object['dateOfCreation'] is None:
+        object['dateOfCreation'] = datetime.datetime.now()
+    object['lastUpdated'] = datetime.datetime.now()
+    del object['_id']
+    return object
 
 def convert_string_to_date(date_as_str, add_days=0):
     try:

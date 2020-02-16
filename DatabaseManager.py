@@ -13,7 +13,7 @@ class DatabaseManager:
         self.query_project_id_only = {'serialNumber' : 1}
         self.query_projections = {
             # Exclude
-            '_id': 0,
+            # '_id': 0,
             'overdue': 0, 
             'tncDateInDate': 0, 
             'ppmDateInDate': 0, 
@@ -58,7 +58,7 @@ class DatabaseManager:
 
     def get_machine_by_id(self, id):
         machines = self.db.machines
-        return helpr.clean_single_machine_for_read(machines.find_one({'serialNumber': id}, self.query_projections) or {})
+        return helpr.clean_single_object_for_read(machines.find_one({'serialNumber': id}, self.query_projections) or {})
 
     def get_machines_by_ids(self, ids):
         machines = self.db.machines
@@ -109,15 +109,10 @@ class DatabaseManager:
         two_weeks_ago = today + datetime.timedelta(days=-14)
         due = machines.find({'$or': [{'ppmDate': today}, {'ppmDate': two_weeks_from_today}, {'ppmDate': two_weeks_ago}]}, self.query_projections)
         return due
-        #return self._get_due_machines() + self._get_almost_due_machines() + self._get_overdue_machines()
-        #return {'data': self._get_due_machines() + self._get_almost_due_machines() + self._get_overdue_machines()}
-        # {'count': results.count(), 'data': helpr.clean_for_read(list(results))}
-        #return {'due': helpr.clean_for_read(list(due_today)), 'almost': helpr.clean_for_read(list(almost_due)), 'over': helpr.clean_for_read(list(overdue))}
 
     def get_num_of_due_machines(self):
         due = self._get_all_due_machines()
         return due.count()
-        #return len(helpr.clean_for_read(list(self._get_due_machines())) + helpr.clean_for_read(list(self._get_almost_due_machines())) + helpr.clean_for_read(list(self._get_overdue_machines())))
 
     def insert_machine(self, new_machine):
         machines = self.db.machines
@@ -162,13 +157,55 @@ class DatabaseManager:
         gfs = self.gfs
         return gfs.delete(ObjectId(id))
 
+    def get_history(self, machine_id, limit, last_batch_fetched, sort_by, sort_order):
+        history = self.db.maintenance
+        results = history.find({'serialNumber': machine_id}, self.query_projections)
+        if sort_by is not None:
+            results = results.sort(sort_by, helpr.get_sort_order(sort_order))
+        if limit is not None:
+            results = results.skip(int(last_batch_fetched)).limit(int(limit))
+        return {'count': results.count(), 'data': helpr.clean_for_read(list(results))}
+
+    def get_history_by_id(self, id):
+        history = self.db.maintenance
+        return helpr.clean_single_object_for_read(history.find_one({'_id': ObjectId(id)}, self.query_projections) or {})
+
+    def update_history(self, id, new_values):
+        history = self.db.maintenance
+        record = self.get_history_by_id(id)
+        if not record:
+            return False
+        if record['lastUpdated'] != new_values['lastUpdated']:
+            return False
+        if 'attachment' in record and record['attachment']:
+            current_attachment_id = record['attachment']
+            if 'attachment' not in new_values or not new_values['attachment']:
+                self.delete_attachment(current_attachment_id)
+            elif new_values['attachment'] != current_attachment_id:
+                self.delete_attachment(current_attachment_id)
+        return history.update_one({'_id': ObjectId(id)}, {'$set': helpr.clean_for_write(new_values)})
+
+    def delete_history(self, id):
+        history = self.db.maintenance
+        record = self.get_history_by_id(id)
+        if not record:
+            return False
+        if 'attachment' in record and record['attachment']:
+            self.delete_attachment(record['attachment'])
+        return history.delete_one({'_id': ObjectId(id)})
 
 if __name__ == "__main__":
     mgr = DatabaseManager('mongodb://localhost:27017/', 'emblem')
-    result = mgr.get_machines_with_ppm_status()
-    for machine in result:
-        print(machine)
-    # result = mgr.get_machines(None, None, None, None)
-    # for r in result['data']:
-    #     mgr.update_machine(r['serialNumber'], {'ppmStatus': ''})
+    history = mgr.db.maintenance
+    results = history.find({}, mgr.query_projections)
+    for r in results:
+        # if r['workOrderDate'] is None:
+        #     continue
+        # tokens = re.split('[/: ]', r['lastUpdated'])
+        # tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
+        # r['lastUpdated'] = tmp
+        # print(r)
+        r['attachment'] = ''
+        r['attachment_name'] = ''
+        history.update_one({'_id': r['_id']}, {'$set': r})
 
