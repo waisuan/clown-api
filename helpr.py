@@ -30,19 +30,24 @@ def clean_for_write(object):
     if 'tncDate' in object and object['tncDate'] is not None:
         date_tokens = re.split('/', object['tncDate'])
         object['tncDate'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]))
+        object['tncDateInInt'] = str(object['tncDate'].strftime('%Y%m%d'))
     if 'ppmDate' in object and object['ppmDate'] is not None:
         date_tokens=re.split('/', object['ppmDate'])
         object['ppmDate'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]))
+        object['ppmDateInInt'] = str(object['ppmDate'].strftime('%Y%m%d'))
     if 'workOrderDate' in object and object['workOrderDate'] is not None:
         date_tokens=re.split('/', object['workOrderDate'])
         object['workOrderDate'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]))
+        object['workOrderDateInInt'] = str(object['workOrderDate'].strftime('%Y%m%d'))
     if 'dateOfCreation' in object and object['dateOfCreation'] is not None:
         date_tokens = re.split('[/: ]', object['dateOfCreation'])
         object['dateOfCreation'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]), int(date_tokens[3]), int(date_tokens[4]), int(date_tokens[5]))
     if 'dateOfCreation' not in object or object['dateOfCreation'] is None:
         object['dateOfCreation'] = datetime.datetime.now()
+    object['dateOfCreationInInt'] = str(object['dateOfCreation'].strftime('%Y%m%d%H%M%S'))
     object['lastUpdated'] = datetime.datetime.now()
-    del object['_id']
+    object['lastUpdatedInInt'] = str(object['lastUpdated'].strftime('%Y%m%d%H%M%S'))
+    object.pop('_id', None)
     return object
 
 def convert_string_to_date(date_as_str, add_days=0):
@@ -78,8 +83,12 @@ def like(property):
             {'dateOfCreationInInt': {'$regex': property, '$options': 'i'}},
             {'lastUpdated': convert_string_to_datetime(property)},
             {'lastUpdatedInInt': {'$regex': property, '$options': 'i'}},
-            {'dateOfCreation': convert_string_to_date(property)},
-            {'lastUpdated': convert_string_to_date(property)}
+            {'lastUpdated': convert_string_to_date(property)},
+            {'workOrderNumber': {'$regex': property, '$options': 'i'}},
+            {'workOrderDate': convert_string_to_date(property)},
+            {'workOrderDateInInt': {'$regex': property, '$options': 'i'}},
+            {'actionTaken': {'$regex': property, '$options': 'i'}},
+            {'workOrderType': {'$regex': property, '$options': 'i'}}
             ]
 
 def get_sort_order(raw_order):

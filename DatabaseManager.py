@@ -39,7 +39,15 @@ class DatabaseManager:
             results = results.sort(sort_by, helpr.get_sort_order(sort_order))
         if limit is not None:
             results = results.skip(int(last_batch_fetched)).limit(int(limit))
-        return {'count': results.count(), 'data': helpr.clean_for_read(list(results))}
+        results_as_list = list(results)
+        self._map_history_to_machines(results_as_list)
+        return {'count': results.count(), 'data': helpr.clean_for_read(results_as_list)}
+
+    def _map_history_to_machines(self, machines):
+        for machine in machines:
+            history = self.get_history(machine['serialNumber'], None, None, None, None)
+            machine['historyCount'] = history['count']
+        return machines
 
     def get_machines_by_property(self, property, limit, last_batch_fetched, sort_by, sort_order):
         machines = self.db.machines
@@ -54,7 +62,9 @@ class DatabaseManager:
             results = results.sort([('score', {'$meta': 'textScore'}), (sort_by, helpr.get_sort_order(sort_order))])
         if limit is not None:
             results = results.skip(int(last_batch_fetched)).limit(int(limit))
-        return {'count': results.count(), 'data': helpr.clean_for_read(list(results))}
+        results_as_list = list(results)
+        self._map_history_to_machines(results_as_list)
+        return {'count': results.count(), 'data': helpr.clean_for_read(results_as_list)}
 
     def get_machine_by_id(self, id):
         machines = self.db.machines
@@ -166,9 +176,28 @@ class DatabaseManager:
             results = results.skip(int(last_batch_fetched)).limit(int(limit))
         return {'count': results.count(), 'data': helpr.clean_for_read(list(results))}
 
+    def get_history_by_property(self, machine_id, property, limit, last_batch_fetched, sort_by, sort_order):
+        history = self.db.maintenance
+        if property.startswith('"') and property.endswith('"'):
+            search_type = '$text'
+            search_val = {'$search': property}
+        else:
+            search_type = '$or'
+            search_val = helpr.like(property)
+        results = history.find({'serialNumber': machine_id, search_type: search_val}, self.query_projections)
+        if sort_by is not None:
+            results = results.sort([('score', {'$meta': 'textScore'}), (sort_by, helpr.get_sort_order(sort_order))])
+        if limit is not None:
+            results = results.skip(int(last_batch_fetched)).limit(int(limit))
+        return {'count': results.count(), 'data': helpr.clean_for_read(list(results))}
+
     def get_history_by_id(self, id):
         history = self.db.maintenance
         return helpr.clean_single_object_for_read(history.find_one({'_id': ObjectId(id)}, self.query_projections) or {})
+
+    def insert_history(self, new_history):
+        history = self.db.maintenance
+        return history.insert_one(helpr.clean_for_write(new_history))
 
     def update_history(self, id, new_values):
         history = self.db.maintenance
@@ -199,13 +228,18 @@ if __name__ == "__main__":
     history = mgr.db.maintenance
     results = history.find({}, mgr.query_projections)
     for r in results:
-        # if r['workOrderDate'] is None:
-        #     continue
-        # tokens = re.split('[/: ]', r['lastUpdated'])
-        # tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
-        # r['lastUpdated'] = tmp
-        # print(r)
-        r['attachment'] = ''
-        r['attachment_name'] = ''
+        if r['dateOfCreation'] is None:
+            continue
+        #tokens = re.split('[/: ]', r['workOrderDate'])
+        #tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
+        
+        #tmp = r['dateOfCreation'].strftime('%Y%m%d%H%M%S')
+        #print(int(tmp))
+        r['dateOfCreationInInt'] = str(r['dateOfCreationInInt'])
+        
+        # tmp = str(r['workOrderDate'])
+        # r['workOrderDate'] = datetime.datetime(year=int(tmp[0:4]), month=int(tmp[4:6]), day=int(tmp[6:8]))
+        # print(r['workOrderDate'])
+
         history.update_one({'_id': r['_id']}, {'$set': r})
 

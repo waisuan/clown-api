@@ -21,12 +21,29 @@ def options_handler(path=None):
     return
 
 
-@app.route('/<machine_id>', method='GET')
-@app.route('/<machine_id>/<limit:int>', method='GET')
-@app.route('/<machine_id>/<limit:int>/<last_batch_fetched:int>', method='GET')
-@app.route('/<machine_id>/<limit:int>/<last_batch_fetched:int>/<sort_by>/<sort_order>', method='GET')
+@app.route('/fetch/<machine_id>', method='GET')
+@app.route('/fetch/<machine_id>/<limit:int>', method='GET')
+@app.route('/fetch/<machine_id>/<limit:int>/<last_batch_fetched:int>', method='GET')
+@app.route('/fetch/<machine_id>/<limit:int>/<last_batch_fetched:int>/<sort_by>/<sort_order>', method='GET')
 def get_history(machine_id, limit=None, last_batch_fetched=0, sort_by=None, sort_order=None):
+    print("get_history")
     return db_mgr.get_history(machine_id, limit, last_batch_fetched, sort_by, sort_order)
+
+@app.route('/search/<machine_id>/<property>', method='GET')
+@app.route('/search/<machine_id>/<property>/<limit:int>', method='GET')
+@app.route('/search/<machine_id>/<property>/<limit:int>/<last_batch_fetched:int>', method='GET')
+@app.route('/search/<machine_id>/<property>/<limit:int>/<last_batch_fetched:int>/<sort_by>/<sort_order>', method='GET')
+def get_history_by_property(machine_id, property, limit=None, last_batch_fetched=0, sort_by=None, sort_order=None):
+    print("get_history_by_property")
+    return db_mgr.get_history_by_property(machine_id, property, limit, last_batch_fetched, sort_by, sort_order)
+
+@app.route('/', method='POST')
+def insert_history():
+    if db_mgr.insert_history(request.json):
+        response.status = 200
+    else:
+        response.status = 404
+    return
 
 @app.route('/<id>', method='PUT')
 def update_history(id):
