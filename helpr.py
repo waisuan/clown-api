@@ -3,19 +3,19 @@ import datetime, re, os
 def clean_single_object_for_read(object):
     if not object:
         return object
-    if 'tncDate' in object and object['tncDate'] is not None:
+    if 'tncDate' in object and object['tncDate']:
         object['tncDate'] = object['tncDate'].strftime('%d/%m/%Y')
-    if 'ppmDate' in object and object['ppmDate'] is not None:
+    if 'ppmDate' in object and object['ppmDate']:
         object['ppmDate'] = object['ppmDate'].strftime('%d/%m/%Y')
-    if object['dateOfCreation'] is not None:
+    if object['dateOfCreation']:
         object['dateOfCreation'] = object['dateOfCreation'].strftime('%d/%m/%Y %H:%M:%S')
-    if object['lastUpdated'] is not None:
+    if object['lastUpdated']:
         object['lastUpdated'] = object['lastUpdated'].strftime('%d/%m/%Y %H:%M:%S')
     if 'attachment' in object and object['attachment']:
         object['attachment'] = str(object['attachment'])
-    if 'workOrderDate' in object and object['workOrderDate'] is not None:
+    if 'workOrderDate' in object and object['workOrderDate']:
         object['workOrderDate'] = object['workOrderDate'].strftime('%d/%m/%Y')
-    if '_id' in object and object['_id'] is not None:
+    if '_id' in object and object['_id']:
         object['_id'] = str(object['_id'])
     return object
 
@@ -27,22 +27,22 @@ def clean_for_read(objects):
 
 
 def clean_for_write(object):
-    if 'tncDate' in object and object['tncDate'] is not None:
+    if 'tncDate' in object and object['tncDate']:
         date_tokens = re.split('/', object['tncDate'])
         object['tncDate'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]))
         object['tncDateInInt'] = str(object['tncDate'].strftime('%Y%m%d'))
-    if 'ppmDate' in object and object['ppmDate'] is not None:
+    if 'ppmDate' in object and object['ppmDate']:
         date_tokens=re.split('/', object['ppmDate'])
         object['ppmDate'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]))
         object['ppmDateInInt'] = str(object['ppmDate'].strftime('%Y%m%d'))
-    if 'workOrderDate' in object and object['workOrderDate'] is not None:
+    if 'workOrderDate' in object and object['workOrderDate']:
         date_tokens=re.split('/', object['workOrderDate'])
         object['workOrderDate'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]))
         object['workOrderDateInInt'] = str(object['workOrderDate'].strftime('%Y%m%d'))
-    if 'dateOfCreation' in object and object['dateOfCreation'] is not None:
+    if 'dateOfCreation' in object and object['dateOfCreation']:
         date_tokens = re.split('[/: ]', object['dateOfCreation'])
         object['dateOfCreation'] = datetime.datetime(int(date_tokens[2]), int(date_tokens[1]), int(date_tokens[0]), int(date_tokens[3]), int(date_tokens[4]), int(date_tokens[5]))
-    if 'dateOfCreation' not in object or object['dateOfCreation'] is None:
+    if 'dateOfCreation' not in object or not object['dateOfCreation']:
         object['dateOfCreation'] = datetime.datetime.now()
     object['dateOfCreationInInt'] = str(object['dateOfCreation'].strftime('%Y%m%d%H%M%S'))
     object['lastUpdated'] = datetime.datetime.now()

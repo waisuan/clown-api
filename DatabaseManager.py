@@ -229,63 +229,72 @@ if __name__ == "__main__":
     from pymongo import TEXT
 
     mgr = DatabaseManager('mongodb://localhost:27017/', 'emblem_2')
-    # machines = mgr.db.machines
+    machines = mgr.db.machines
     # machines.create_index([('$**', TEXT)])
-    # results = machines.find({}, mgr.query_projections)
-    # for r in results:
-    #     r['attachment'] = ''
-    #     r['attachment_name'] = ''
-    #     if r['tncDate'] is not None and r['tncDate'] != '':
-    #         tokens = re.split('[/: ]', r['tncDate'])
-    #         tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]))
-    #         r['tncDate'] = tmp
-    #         r['tncDateInInt'] = str(int(tokens[2] + tokens[0] + tokens[1]))
+    results = machines.find({}, mgr.query_projections)
+    for r in results:
+        # r['attachment'] = ''
+        # r['attachment_name'] = ''
+        # if r['tncDate'] is not None and r['tncDate'] != '':
+        #     tokens = re.split('[/: ]', r['tncDate'])
+        #     tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]))
+        #     r['tncDate'] = tmp
+        #     r['tncDateInInt'] = str(int(tokens[2] + tokens[0] + tokens[1]))
 
-    #     if r['ppmDate'] is not None and r['ppmDate'] != '':
-    #         tokens = re.split('[/: ]', r['ppmDate'])
-    #         tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]))
-    #         r['ppmDate'] = tmp
-    #         r['ppmDateInInt'] = str(int(tokens[2] + tokens[0] + tokens[1]))
+        # if r['ppmDate'] is not None and r['ppmDate'] != '':
+        #     tokens = re.split('[/: ]', r['ppmDate'])
+        #     tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]))
+        #     r['ppmDate'] = tmp
+        #     r['ppmDateInInt'] = str(int(tokens[2] + tokens[0] + tokens[1]))
 
-    #     if r['dateOfCreation'] is not None and r['dateOfCreation'] != '':
-    #         tokens = re.split('[/: ]', r['dateOfCreation'])
-    #         tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
-    #         r['dateOfCreation'] = tmp
-    #         r['dateOfCreationInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
+        # if r['dateOfCreation'] is not None and r['dateOfCreation'] != '':
+        #     tokens = re.split('[/: ]', r['dateOfCreation'])
+        #     tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
+        #     r['dateOfCreation'] = tmp
+        #     r['dateOfCreationInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
 
-    #     if r['lastUpdated'] is not None and r['lastUpdated'] != '':
-    #         tokens = re.split('[/: ]', r['lastUpdated'])
-    #         tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
-    #         r['lastUpdated'] = tmp
-    #         r['lastUpdatedInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
+        # if r['lastUpdated'] is not None and r['lastUpdated'] != '':
+        #     tokens = re.split('[/: ]', r['lastUpdated'])
+        #     tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
+        #     r['lastUpdated'] = tmp
+        #     r['lastUpdatedInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
         
-    #     print(r)
-    #     machines.update_one({'_id': r['_id']}, {'$set': r})
+        if 'tncDate' in r and not r['tncDate']:
+            machines.update_one({'_id': r['_id']}, {'$unset': {'tncDate': 1}})
 
-    # history = mgr.db.maintenance
+        if 'ppmDate' in r and not r['ppmDate']:
+            machines.update_one({'_id': r['_id']}, {'$unset': {'ppmDate': 1}})
+
+        print(r)
+        #machines.update_one({'_id': r['_id']}, {'$set': r})
+
+    history = mgr.db.maintenance
     # history.create_index([('$**', TEXT)])
-    # results = history.find({}, mgr.query_projections)
-    # for r in results:
-    #     r['attachment'] = ''
-    #     r['attachment_name'] = ''
-    #     if r['workOrderDate'] is not None and r['workOrderDate'] != '':
-    #         tokens = re.split('[/: ]', r['workOrderDate'])
-    #         tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]))
-    #         r['workOrderDate'] = tmp
-    #         r['workOrderDateInInt'] = str(int(tokens[2] + tokens[0] + tokens[1]))
+    results = history.find({}, mgr.query_projections)
+    for r in results:
+        # r['attachment'] = ''
+        # r['attachment_name'] = ''
+        # if r['workOrderDate'] is not None and r['workOrderDate'] != '':
+        #     tokens = re.split('[/: ]', r['workOrderDate'])
+        #     tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]))
+        #     r['workOrderDate'] = tmp
+        #     r['workOrderDateInInt'] = str(int(tokens[2] + tokens[0] + tokens[1]))
 
-    #     if r['dateOfCreation'] is not None and r['dateOfCreation'] != '':
-    #         tokens = re.split('[/: ]', r['dateOfCreation'])
-    #         tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
-    #         r['dateOfCreation'] = tmp
-    #         r['dateOfCreationInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
+        # if r['dateOfCreation'] is not None and r['dateOfCreation'] != '':
+        #     tokens = re.split('[/: ]', r['dateOfCreation'])
+        #     tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
+        #     r['dateOfCreation'] = tmp
+        #     r['dateOfCreationInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
 
-    #     if r['lastUpdated'] is not None and r['lastUpdated'] != '':
-    #         tokens = re.split('[/: ]', r['lastUpdated'])
-    #         tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
-    #         r['lastUpdated'] = tmp
-    #         r['lastUpdatedInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
+        # if r['lastUpdated'] is not None and r['lastUpdated'] != '':
+        #     tokens = re.split('[/: ]', r['lastUpdated'])
+        #     tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
+        #     r['lastUpdated'] = tmp
+        #     r['lastUpdatedInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
         
-    #     print(r)
-    #     history.update_one({'_id': r['_id']}, {'$set': r})
+        if 'workOrderDate' in r and not r['workOrderDate']:
+            history.update_one({'_id': r['_id']}, {'$unset': {'workOrderDate': 1}})
+
+        print(r)
+        # history.update_one({'_id': r['_id']}, {'$set': r})
 
