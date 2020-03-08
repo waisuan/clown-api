@@ -262,30 +262,30 @@ if __name__ == "__main__":
     #     print(r)
     #     machines.update_one({'_id': r['_id']}, {'$set': r})
 
-    history = mgr.db.maintenance
-    history.create_index([('$**', TEXT)])
-    results = history.find({}, mgr.query_projections)
-    for r in results:
-        r['attachment'] = ''
-        r['attachment_name'] = ''
-        if r['workOrderDate'] is not None and r['workOrderDate'] != '':
-            tokens = re.split('[/: ]', r['workOrderDate'])
-            tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]))
-            r['workOrderDate'] = tmp
-            r['workOrderDateInInt'] = str(int(tokens[2] + tokens[0] + tokens[1]))
+    # history = mgr.db.maintenance
+    # history.create_index([('$**', TEXT)])
+    # results = history.find({}, mgr.query_projections)
+    # for r in results:
+    #     r['attachment'] = ''
+    #     r['attachment_name'] = ''
+    #     if r['workOrderDate'] is not None and r['workOrderDate'] != '':
+    #         tokens = re.split('[/: ]', r['workOrderDate'])
+    #         tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]))
+    #         r['workOrderDate'] = tmp
+    #         r['workOrderDateInInt'] = str(int(tokens[2] + tokens[0] + tokens[1]))
 
-        if r['dateOfCreation'] is not None and r['dateOfCreation'] != '':
-            tokens = re.split('[/: ]', r['dateOfCreation'])
-            tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
-            r['dateOfCreation'] = tmp
-            r['dateOfCreationInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
+    #     if r['dateOfCreation'] is not None and r['dateOfCreation'] != '':
+    #         tokens = re.split('[/: ]', r['dateOfCreation'])
+    #         tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
+    #         r['dateOfCreation'] = tmp
+    #         r['dateOfCreationInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
 
-        if r['lastUpdated'] is not None and r['lastUpdated'] != '':
-            tokens = re.split('[/: ]', r['lastUpdated'])
-            tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
-            r['lastUpdated'] = tmp
-            r['lastUpdatedInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
+    #     if r['lastUpdated'] is not None and r['lastUpdated'] != '':
+    #         tokens = re.split('[/: ]', r['lastUpdated'])
+    #         tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
+    #         r['lastUpdated'] = tmp
+    #         r['lastUpdatedInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
         
-        print(r)
-        history.update_one({'_id': r['_id']}, {'$set': r})
+    #     print(r)
+    #     history.update_one({'_id': r['_id']}, {'$set': r})
 
