@@ -75,25 +75,25 @@ class DatabaseManager:
         results = machines.find({'serialNumber': {'$in': ids}}, self.query_projections)
         return {'count': results.count(), 'data': helpr.clean_for_read(list(results))}
 
-    def _get_due_machines(self):
-        machines = self.db.machines
-        today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
-        due_today = machines.find({'ppmDate': today}, self.query_projections)
-        return due_today
+    # def _get_due_machines(self):
+    #     machines = self.db.machines
+    #     today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
+    #     due_today = machines.find({'ppmDate': today}, self.query_projections)
+    #     return due_today
 
-    def _get_overdue_machines(self):
-        machines = self.db.machines
-        today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
-        two_weeks_ago = today + datetime.timedelta(days=-14)
-        overdue = machines.find({'ppmDate': two_weeks_ago}, self.query_projections)
-        return overdue
+    # def _get_overdue_machines(self):
+    #     machines = self.db.machines
+    #     today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
+    #     two_weeks_ago = today + datetime.timedelta(days=-14)
+    #     overdue = machines.find({'ppmDate': two_weeks_ago}, self.query_projections)
+    #     return overdue
 
-    def _get_almost_due_machines(self):
-        machines = self.db.machines
-        today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
-        two_weeks_from_today = today + datetime.timedelta(days=14)
-        almost_due = machines.find({'ppmDate': two_weeks_from_today}, self.query_projections)
-        return almost_due
+    # def _get_almost_due_machines(self):
+    #     machines = self.db.machines
+    #     today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
+    #     two_weeks_from_today = today + datetime.timedelta(days=14)
+    #     almost_due = machines.find({'ppmDate': two_weeks_from_today}, self.query_projections)
+    #     return almost_due
 
     def _get_custom_due_machines(self, status):
         machines = self.db.machines
@@ -104,11 +104,11 @@ class DatabaseManager:
         conditions = []
         for token in tokens:
             if token == 'almostDue':
-                conditions.append({'ppmDate': two_weeks_from_today})
+                conditions.append({'ppmDate': {'$lt': two_weeks_from_today, '$gte': today}})
             elif token == 'due':
                 conditions.append({'ppmDate': today})
             elif token == 'overDue':
-                conditions.append({'ppmDate': two_weeks_ago})
+                conditions.append({'ppmDate': {'$lt': today, '$gte': two_weeks_ago}})
         due = machines.find({'$or': conditions}, self.query_projections)
         return due
 
@@ -117,7 +117,9 @@ class DatabaseManager:
         today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
         two_weeks_from_today = today + datetime.timedelta(days=14)
         two_weeks_ago = today + datetime.timedelta(days=-14)
-        due = machines.find({'$or': [{'ppmDate': today}, {'ppmDate': two_weeks_from_today}, {'ppmDate': two_weeks_ago}]}, self.query_projections)
+        due = machines.find({'$or': [{'ppmDate': today},
+                                     {'ppmDate': {'$lt': two_weeks_from_today, '$gte': today}},
+                                     {'ppmDate': {'$lt': today, '$gte': two_weeks_ago}}]}, self.query_projections)
         return due
 
     def get_num_of_due_machines(self):
@@ -224,22 +226,66 @@ class DatabaseManager:
         return history.delete_one({'_id': ObjectId(id)})
 
 if __name__ == "__main__":
-    mgr = DatabaseManager('mongodb://localhost:27017/', 'emblem')
+    from pymongo import TEXT
+
+    mgr = DatabaseManager('mongodb://localhost:27017/', 'emblem_2')
+    # machines = mgr.db.machines
+    # machines.create_index([('$**', TEXT)])
+    # results = machines.find({}, mgr.query_projections)
+    # for r in results:
+    #     r['attachment'] = ''
+    #     r['attachment_name'] = ''
+    #     if r['tncDate'] is not None and r['tncDate'] != '':
+    #         tokens = re.split('[/: ]', r['tncDate'])
+    #         tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]))
+    #         r['tncDate'] = tmp
+    #         r['tncDateInInt'] = str(int(tokens[2] + tokens[0] + tokens[1]))
+
+    #     if r['ppmDate'] is not None and r['ppmDate'] != '':
+    #         tokens = re.split('[/: ]', r['ppmDate'])
+    #         tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]))
+    #         r['ppmDate'] = tmp
+    #         r['ppmDateInInt'] = str(int(tokens[2] + tokens[0] + tokens[1]))
+
+    #     if r['dateOfCreation'] is not None and r['dateOfCreation'] != '':
+    #         tokens = re.split('[/: ]', r['dateOfCreation'])
+    #         tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
+    #         r['dateOfCreation'] = tmp
+    #         r['dateOfCreationInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
+
+    #     if r['lastUpdated'] is not None and r['lastUpdated'] != '':
+    #         tokens = re.split('[/: ]', r['lastUpdated'])
+    #         tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
+    #         r['lastUpdated'] = tmp
+    #         r['lastUpdatedInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
+        
+    #     print(r)
+    #     machines.update_one({'_id': r['_id']}, {'$set': r})
+
     history = mgr.db.maintenance
+    history.create_index([('$**', TEXT)])
     results = history.find({}, mgr.query_projections)
     for r in results:
-        if r['dateOfCreation'] is None:
-            continue
-        #tokens = re.split('[/: ]', r['workOrderDate'])
-        #tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
-        
-        #tmp = r['dateOfCreation'].strftime('%Y%m%d%H%M%S')
-        #print(int(tmp))
-        r['dateOfCreationInInt'] = str(r['dateOfCreationInInt'])
-        
-        # tmp = str(r['workOrderDate'])
-        # r['workOrderDate'] = datetime.datetime(year=int(tmp[0:4]), month=int(tmp[4:6]), day=int(tmp[6:8]))
-        # print(r['workOrderDate'])
+        r['attachment'] = ''
+        r['attachment_name'] = ''
+        if r['workOrderDate'] is not None and r['workOrderDate'] != '':
+            tokens = re.split('[/: ]', r['workOrderDate'])
+            tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]))
+            r['workOrderDate'] = tmp
+            r['workOrderDateInInt'] = str(int(tokens[2] + tokens[0] + tokens[1]))
 
+        if r['dateOfCreation'] is not None and r['dateOfCreation'] != '':
+            tokens = re.split('[/: ]', r['dateOfCreation'])
+            tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
+            r['dateOfCreation'] = tmp
+            r['dateOfCreationInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
+
+        if r['lastUpdated'] is not None and r['lastUpdated'] != '':
+            tokens = re.split('[/: ]', r['lastUpdated'])
+            tmp = datetime.datetime(int(tokens[2]), int(tokens[0]), int(tokens[1]), int(tokens[3]), int(tokens[4]), int(tokens[5]))
+            r['lastUpdated'] = tmp
+            r['lastUpdatedInInt'] = str(int(tokens[2] + tokens[0] + tokens[1] + tokens[3] + tokens[4] + tokens[5]))
+        
+        print(r)
         history.update_one({'_id': r['_id']}, {'$set': r})
 
