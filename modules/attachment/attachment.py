@@ -5,6 +5,7 @@ import os, json, io
 from time import sleep
 from bson import json_util
 from cleanr import Cleanr
+import helpr
 
 static_dir = './static'
 
@@ -13,14 +14,19 @@ cleanr.daemon = True
 cleanr.start()
 
 app = Bottle()
-app.install(JSONPlugin(json_dumps=lambda body: json.dumps(body, default=json_util.default)))
-db_mgr = DatabaseManager(os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/'), os.environ.get('DB_NAME', 'emblem'))
+app.install(
+    JSONPlugin(
+        json_dumps=lambda body: json.dumps(body, default=json_util.default)))
+db_mgr = helpr.get_db_mgr()
+
 
 @app.hook('after_request')
 def enable_cors():
     response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, DELETE, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Authorization, Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token, Accept-Encoding, Content-Disposition, Content-Length, Accept-Ranges, Content-Range'
+    response.headers[
+        'Access-Control-Allow-Methods'] = 'PUT, GET, POST, DELETE, OPTIONS'
+    response.headers[
+        'Access-Control-Allow-Headers'] = 'Authorization, Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token, Accept-Encoding, Content-Disposition, Content-Length, Accept-Ranges, Content-Range'
 
 
 @app.route('/', method='OPTIONS')
@@ -34,11 +40,16 @@ def get_attachment(id):
     in_file = None
     try:
         in_file = db_mgr.get_attachment(id)
-        with open(os.path.join(static_dir, in_file.filename), "wb") as out_file:
+        with open(os.path.join(static_dir, in_file.filename),
+                  "wb") as out_file:
             out_file.write(in_file.read())
-        custom_response = static_file(in_file.filename, root=static_dir, mimetype='auto', download=True)
+        custom_response = static_file(in_file.filename,
+                                      root=static_dir,
+                                      mimetype='auto',
+                                      download=True)
         custom_response.set_header('Access-Control-Allow-Origin', '*')
-        custom_response.set_header('Access-Control-Expose-Headers', 'Content-Disposition')
+        custom_response.set_header('Access-Control-Expose-Headers',
+                                   'Content-Disposition')
         return custom_response
     except:
         response.status = 404

@@ -4,16 +4,22 @@ from geventwebsocket import WebSocketError
 import os, json
 from time import sleep
 from bson import json_util
+import helpr
 
 app = Bottle()
-app.install(JSONPlugin(json_dumps=lambda body: json.dumps(body, default=json_util.default)))
-db_mgr = DatabaseManager(os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/'), os.environ.get('DB_NAME', 'emblem'))
+app.install(
+    JSONPlugin(
+        json_dumps=lambda body: json.dumps(body, default=json_util.default)))
+db_mgr = helpr.get_db_mgr()
+
 
 @app.hook('after_request')
 def enable_cors():
     response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, DELETE, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Authorization, Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token, Accept-Encoding, Content-Disposition, Content-Length, Accept-Ranges, Content-Range'
+    response.headers[
+        'Access-Control-Allow-Methods'] = 'PUT, GET, POST, DELETE, OPTIONS'
+    response.headers[
+        'Access-Control-Allow-Headers'] = 'Authorization, Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token, Accept-Encoding, Content-Disposition, Content-Length, Accept-Ranges, Content-Range'
 
 
 @app.route('/', method='OPTIONS')
@@ -25,25 +31,44 @@ def options_handler(path=None):
 @app.route('/', method='GET')
 @app.route('/<limit:int>', method='GET')
 @app.route('/<limit:int>/<last_batch_fetched:int>', method='GET')
-@app.route('/<limit:int>/<last_batch_fetched:int>/<sort_by>/<sort_order>', method='GET')
-def get_machines(limit=None, last_batch_fetched=0, sort_by=None, sort_order=None):
+@app.route('/<limit:int>/<last_batch_fetched:int>/<sort_by>/<sort_order>',
+           method='GET')
+def get_machines(limit=None,
+                 last_batch_fetched=0,
+                 sort_by=None,
+                 sort_order=None):
     return db_mgr.get_machines(limit, last_batch_fetched, sort_by, sort_order)
 
 
 @app.route('/due/<status>', method='GET')
 @app.route('/due/<status>/<limit:int>', method='GET')
 @app.route('/due/<status>/<limit:int>/<last_batch_fetched:int>', method='GET')
-@app.route('/due/<status>/<limit:int>/<last_batch_fetched:int>/<sort_by>/<sort_order>', method='GET')
-def get_due_machines(status, limit=None, last_batch_fetched=0, sort_by=None, sort_order=None):
-    return db_mgr.get_machines(limit, last_batch_fetched, sort_by, sort_order, status)
+@app.route(
+    '/due/<status>/<limit:int>/<last_batch_fetched:int>/<sort_by>/<sort_order>',
+    method='GET')
+def get_due_machines(status,
+                     limit=None,
+                     last_batch_fetched=0,
+                     sort_by=None,
+                     sort_order=None):
+    return db_mgr.get_machines(limit, last_batch_fetched, sort_by, sort_order,
+                               status)
 
 
 @app.route('/search/<property>', method='GET')
 @app.route('/search/<property>/<limit:int>', method='GET')
-@app.route('/search/<property>/<limit:int>/<last_batch_fetched:int>', method='GET')
-@app.route('/search/<property>/<limit:int>/<last_batch_fetched:int>/<sort_by>/<sort_order>', method='GET')
-def get_machines_by_property(property, limit=None, last_batch_fetched=0, sort_by=None, sort_order=None):
-    return db_mgr.get_machines_by_property(property, limit, last_batch_fetched, sort_by, sort_order)
+@app.route('/search/<property>/<limit:int>/<last_batch_fetched:int>',
+           method='GET')
+@app.route(
+    '/search/<property>/<limit:int>/<last_batch_fetched:int>/<sort_by>/<sort_order>',
+    method='GET')
+def get_machines_by_property(property,
+                             limit=None,
+                             last_batch_fetched=0,
+                             sort_by=None,
+                             sort_order=None):
+    return db_mgr.get_machines_by_property(property, limit, last_batch_fetched,
+                                           sort_by, sort_order)
 
 
 @app.route('/', method='POST')
@@ -62,7 +87,7 @@ def update_machine(id):
     else:
         response.status = 404
     return
-    
+
 
 @app.route('/<id>', method='DELETE')
 def delete_machine(id):

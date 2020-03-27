@@ -27,4 +27,3 @@ class Cleanr(threading.Thread):
 
     def stop(self):
         self.halt = True
-
