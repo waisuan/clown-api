@@ -42,20 +42,10 @@ def login():
         response.status = 404
         return
     username = request.json['username']
-    to_encode = {
+    encoded = {
         'username': username,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=30)
+        'exp':
+        datetime.datetime.utcnow() + datetime.timedelta(seconds=30)  #hours=12
     }
-    token = jwt.encode(to_encode, 'secret', algorithm='HS256')
+    token = jwt.encode(encoded, 'secret', algorithm='HS256')
     return json.dumps({'token': token.decode('ascii')})
-
-
-@app.route('/verify', method='POST')
-def verify():
-    token = request.json['token']
-    try:
-        jwt.decode(token, 'secret', algorithm='HS256')
-        response.status = 200
-    except:
-        response.status = 400
-    return

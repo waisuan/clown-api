@@ -101,26 +101,6 @@ class DatabaseManager:
             'data': helpr.clean_for_read(list(results))
         }
 
-    # def _get_due_machines(self):
-    #     machines = self.db.machines
-    #     today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
-    #     due_today = machines.find({'ppmDate': today}, self.query_projections)
-    #     return due_today
-
-    # def _get_overdue_machines(self):
-    #     machines = self.db.machines
-    #     today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
-    #     two_weeks_ago = today + datetime.timedelta(days=-14)
-    #     overdue = machines.find({'ppmDate': two_weeks_ago}, self.query_projections)
-    #     return overdue
-
-    # def _get_almost_due_machines(self):
-    #     machines = self.db.machines
-    #     today = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
-    #     two_weeks_from_today = today + datetime.timedelta(days=14)
-    #     almost_due = machines.find({'ppmDate': two_weeks_from_today}, self.query_projections)
-    #     return almost_due
-
     def _get_custom_due_machines(self, status):
         machines = self.db.machines
         today = datetime.datetime.combine(datetime.date.today(),
@@ -321,13 +301,6 @@ if __name__ == "__main__":
     import os
 
     mgr = DatabaseManager('mongodb://localhost:27017/', 'emblem_2')
-    # metadata = mgr.db.metadata
-    # print(metadata.find_one({'type': 'salt'})['value'])
-
-    #mgr.create_user({'username': 'me', 'password': 'me'})
-    print(mgr.confirm_user({'username': 'me', 'password': 'me'}))
-    print(mgr.confirm_user({'username': 'me', 'password': 'me1'}))
-    print(mgr.confirm_user({'username': 'me1', 'password': 'me'}))
 
     # machines = mgr.db.machines
     # # machines.create_index([('$**', TEXT)])

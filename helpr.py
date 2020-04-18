@@ -1,6 +1,7 @@
 import datetime, re, os
 import hashlib, binascii
 from DatabaseManager import DatabaseManager
+import jwt
 
 
 def get_db_mgr():
@@ -224,3 +225,11 @@ def flatten_list(obj, key):
 def hash(value, salt):
     dk = hashlib.pbkdf2_hmac('sha256', value.encode('ascii'), salt, 100000)
     return binascii.hexlify(dk)
+
+
+def validate_jwt_token(token):
+    try:
+        jwt.decode(token, 'secret', algorithm='HS256')
+    except:
+        return False
+    return True
