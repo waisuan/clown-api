@@ -1,4 +1,4 @@
-from bottle import Bottle, request, response, abort, JSONPlugin
+from bottle import Bottle, request, response, abort, JSONPlugin, auth_basic
 from DatabaseManager import DatabaseManager
 from geventwebsocket import WebSocketError
 import os, json
@@ -11,6 +11,17 @@ app.install(
     JSONPlugin(
         json_dumps=lambda body: json.dumps(body, default=json_util.default)))
 db_mgr = helpr.get_db_mgr()
+
+
+@app.hook('before_request')
+def authenticate():
+    method = request.method
+    auth = request.headers.get('Authorization', "")
+    if method == 'GET' and auth:
+        token = auth.replace('Bearer ', '')
+        if not helpr.validate_jwt_token(token):
+            response.status = 401
+            return
 
 
 @app.hook('after_request')
@@ -108,6 +119,6 @@ def handle_websocket():
         try:
             num = db_mgr.get_num_of_due_machines()
             wsock.send(json.dumps(num))
-            sleep(60)
+            sleep(3600)
         except WebSocketError:
             break
