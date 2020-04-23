@@ -227,9 +227,17 @@ def hash(value, salt):
     return binascii.hexlify(dk)
 
 
+def create_jwt_token(data):
+    return jwt.encode(data,
+                      os.environ.get('SECRET', 'secret'),
+                      algorithm='HS256')
+
+
 def validate_jwt_token(token):
     try:
-        jwt.decode(token, 'secret', algorithm='HS256')
+        jwt.decode(token,
+                   os.environ.get('SECRET', 'secret'),
+                   algorithm='HS256')
     except:
         return False
     return True
