@@ -47,5 +47,5 @@ def login():
         'exp':
         datetime.datetime.utcnow() + datetime.timedelta(hours=12)
     }
-    token = jwt.encode(encoded, 'secret', algorithm='HS256')
+    token = jwt.encode(encoded, os.environ.get('SECRET', 'secret'), algorithm='HS256')
     return json.dumps({'token': token.decode('ascii')})
