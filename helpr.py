@@ -5,9 +5,11 @@ import jwt
 
 
 def get_db_mgr():
-    return DatabaseManager(
-        os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/'),
-        os.environ.get('DB_NAME', 'emblem_2'))
+    if DatabaseManager._instance is None:
+        DatabaseManager._instance = DatabaseManager(
+            os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/'),
+            os.environ.get('DB_NAME', 'emblem_2'))
+    return DatabaseManager._instance
 
 
 def clean_single_object_for_read(object):

@@ -7,6 +7,8 @@ import pprint
 
 
 class DatabaseManager:
+    _instance = None
+
     def __init__(self, uri, db_name):
         client = MongoClient(uri)
         self.db = client[db_name]
