@@ -233,7 +233,7 @@ def create_jwt_token(data):
     return jwt.encode(
         {
             'data': data,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(weeks=1)
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
         },
         os.environ.get('SECRET', 'secret'),
         algorithm='HS256').decode('ascii')
