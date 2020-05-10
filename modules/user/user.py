@@ -4,6 +4,7 @@ import os, json, datetime
 from bson import json_util
 import helpr
 import jwt
+import uuid
 
 app = Bottle()
 app.install(
@@ -42,9 +43,15 @@ def login():
         response.status = 404
         return
     username = request.json['username']
-    encoded = {
-        'username': username,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=12)
-    }
-    token = helpr.create_jwt_token(encoded)
+    token = helpr.create_jwt_token(username)
+    return json.dumps({'token': token.decode('ascii')})
+
+
+@app.route('/extend', method='POST')
+def extend():
+    old_token = request.headers.get('Authorization', "").replace('Bearer ', '')
+    if not helpr.validate_jwt_token(old_token):
+        response.status = 401
+        return
+    token = helpr.create_jwt_token(str(uuid.uuid4()))
     return json.dumps({'token': token.decode('ascii')})

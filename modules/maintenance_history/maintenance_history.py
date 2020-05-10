@@ -14,13 +14,12 @@ db_mgr = helpr.get_db_mgr()
 
 @app.hook('before_request')
 def authenticate():
-    method = request.method
-    auth = request.headers.get('Authorization', "")
-    if method == 'GET' and auth:
-        token = auth.replace('Bearer ', '')
-        if not helpr.validate_jwt_token(token):
-            response.status = 401
-            return
+    if request.method == 'OPTIONS':
+        return
+    token = request.headers.get('Authorization', "").replace('Bearer ', '')
+    if not helpr.validate_jwt_token(token):
+        response.status = 401
+        return
 
 
 @app.hook('after_request')
@@ -50,7 +49,6 @@ def get_history(machine_id,
                 last_batch_fetched=0,
                 sort_by=None,
                 sort_order=None):
-    print("get_history")
     return db_mgr.get_history(machine_id, limit, last_batch_fetched, sort_by,
                               sort_order)
 
@@ -69,7 +67,6 @@ def get_history_by_property(machine_id,
                             last_batch_fetched=0,
                             sort_by=None,
                             sort_order=None):
-    print("get_history_by_property")
     return db_mgr.get_history_by_property(machine_id, property, limit,
                                           last_batch_fetched, sort_by,
                                           sort_order)

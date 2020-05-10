@@ -20,6 +20,16 @@ app.install(
 db_mgr = helpr.get_db_mgr()
 
 
+@app.hook('before_request')
+def authenticate():
+    if request.method == 'OPTIONS':
+        return
+    token = request.headers.get('Authorization', "").replace('Bearer ', '')
+    if not helpr.validate_jwt_token(token):
+        response.status = 401
+        return
+
+
 @app.hook('after_request')
 def enable_cors():
     response.headers['Access-Control-Allow-Origin'] = '*'

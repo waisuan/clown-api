@@ -230,9 +230,13 @@ def hash(value, salt):
 
 
 def create_jwt_token(data):
-    return jwt.encode(data,
-                      os.environ.get('SECRET', 'secret'),
-                      algorithm='HS256')
+    return jwt.encode(
+        {
+            'data': data,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(weeks=1)
+        },
+        os.environ.get('SECRET', 'secret'),
+        algorithm='HS256')
 
 
 def validate_jwt_token(token):
