@@ -1,6 +1,6 @@
 import datetime, re, os
 import hashlib, binascii
-from DatabaseManager import DatabaseManager
+from database import DatabaseManager
 import jwt
 
 
@@ -236,7 +236,7 @@ def create_jwt_token(data):
             'exp': datetime.datetime.utcnow() + datetime.timedelta(weeks=1)
         },
         os.environ.get('SECRET', 'secret'),
-        algorithm='HS256')
+        algorithm='HS256').decode('ascii')
 
 
 def validate_jwt_token(token):

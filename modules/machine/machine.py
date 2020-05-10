@@ -1,5 +1,4 @@
 from bottle import Bottle, request, response, abort, JSONPlugin, auth_basic
-from DatabaseManager import DatabaseManager
 from geventwebsocket import WebSocketError
 import os, json
 from time import sleep

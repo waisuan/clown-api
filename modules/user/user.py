@@ -1,16 +1,17 @@
 from bottle import Bottle, request, response, JSONPlugin
-from DatabaseManager import DatabaseManager
 import os, json, datetime
 from bson import json_util
 import helpr
 import jwt
 import uuid
+from modules.user.user_store import UserStore
 
 app = Bottle()
 app.install(
     JSONPlugin(
         json_dumps=lambda body: json.dumps(body, default=json_util.default)))
 db_mgr = helpr.get_db_mgr()
+user_store = UserStore()
 
 
 @app.hook('after_request')
@@ -44,14 +45,18 @@ def login():
         return
     username = request.json['username']
     token = helpr.create_jwt_token(username)
-    return json.dumps({'token': token.decode('ascii')})
+    user_store.store(username, token)
+    return json.dumps({'token': token})
 
 
-@app.route('/extend', method='POST')
-def extend():
-    old_token = request.headers.get('Authorization', "").replace('Bearer ', '')
-    if not helpr.validate_jwt_token(old_token):
+@app.route('/extend/<username>', method='POST')
+def extend(username):
+    curr_token = request.headers.get('Authorization',
+                                     "").replace('Bearer ', '')
+    if not user_store.contains(username, curr_token):
         response.status = 401
         return
-    token = helpr.create_jwt_token(str(uuid.uuid4()))
-    return json.dumps({'token': token.decode('ascii')})
+    if not helpr.validate_jwt_token(curr_token):
+        curr_token = helpr.create_jwt_token(str(uuid.uuid4()))
+        user_store.store(username, curr_token)
+    return json.dumps({'token': curr_token})
