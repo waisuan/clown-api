@@ -54,8 +54,7 @@ def extend(username):
     curr_token = request.headers.get('Authorization',
                                      "").replace('Bearer ', '')
     if not user_store.contains(username, curr_token):
-        response.status = 401
-        return
+        return json.dumps({})
     if not helpr.validate_jwt_token(curr_token):
         curr_token = helpr.create_jwt_token(str(uuid.uuid4()))
         user_store.store(username, curr_token)
