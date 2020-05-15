@@ -1,4 +1,4 @@
-from bottle import Bottle, request, response, abort, JSONPlugin, auth_basic
+from bottle import Bottle, request, response, abort, JSONPlugin, auth_basic, HTTPError
 from geventwebsocket import WebSocketError
 import os, json
 from time import sleep
@@ -18,8 +18,7 @@ def authenticate():
         return
     token = request.headers.get('Authorization', "").replace('Bearer ', '')
     if not helpr.validate_jwt_token(token):
-        response.status = 401
-        return
+        raise HTTPError(401, Access_Control_Allow_Origin='*')
 
 
 @app.hook('after_request')
