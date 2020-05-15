@@ -3,14 +3,10 @@ from geventwebsocket import WebSocketError
 import os, json, io
 from time import sleep
 from bson import json_util
-from cleanr import Cleanr
 import helpr
+from cleanr import queue
 
 static_dir = './static'
-
-cleanr = Cleanr(static_dir)
-cleanr.daemon = True
-cleanr.start()
 
 app = Bottle()
 app.install(
@@ -65,7 +61,7 @@ def get_attachment(id):
         return
     finally:
         if in_file is not None:
-            cleanr.add_to_queue(in_file.filename)
+            queue.put(in_file.filename)
 
 
 @app.route('/<id>', method='PUT')

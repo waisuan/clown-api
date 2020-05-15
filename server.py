@@ -5,13 +5,17 @@ from bottle import run
 from gevent.pywsgi import WSGIServer
 from geventwebsocket import WebSocketError
 from geventwebsocket.handler import WebSocketHandler
-from cleanr import Cleanr
 from modules.machine import machine
 from modules.attachment import attachment
 from modules.maintenance_history import maintenance_history
 from modules.user import user
+from cleanr import Cleanr
 
 route_prefix = '/clown-api'
+
+cleanr = Cleanr()
+cleanr.daemon = True
+cleanr.start()
 
 app = bottle.app()
 app.mount(route_prefix + '/machines', machine.app)
@@ -29,5 +33,5 @@ else:
         debug=True,
         server='gevent',
         handler_class=WebSocketHandler)
-attachment.cleanr.stop()
-attachment.cleanr.join()
+cleanr.stop()
+cleanr.join()
