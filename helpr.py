@@ -8,7 +8,7 @@ def get_db_mgr():
     if DatabaseManager._instance is None:
         DatabaseManager._instance = DatabaseManager(
             os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/'),
-            os.environ.get('DB_NAME', 'emblem_2'))
+            os.environ.get('DB_NAME', 'emblem'))
     return DatabaseManager._instance
 
 
